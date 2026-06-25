@@ -2,12 +2,12 @@
 
 ## Domain Concept
 
-Industrial HMI/SCADA applications help operators monitor and control equipment. This prototype focuses on the monitoring side:
+Industrial HMI/SCADA applications help operators monitor and control equipment. This prototype focuses on a small monitoring slice:
 
 - Equipment units represent machines, lines, pumps, tanks, or controllers.
 - Telemetry readings represent process values such as temperature, pressure, speed, and utilization.
 - Alarm rules convert readings into operator-visible states.
-- The UI presents a fast operational summary before drilling into details.
+- The UI presents a fast operational summary, equipment table, and active alarm list.
 
 ## Prototype Boundaries
 

@@ -5,6 +5,7 @@
   "description": "Portfolio prototype for a TypeScript/.NET industrial HMI/SCADA web application.",
   "type": "module",
   "scripts": {
+    "serve": "node tools/serve.mjs",
     "test": "node --test tests/domain.test.mjs"
   }
 }

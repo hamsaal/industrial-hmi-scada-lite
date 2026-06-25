@@ -6,7 +6,7 @@ The goal is to demonstrate how a medior full stack developer could approach the 
 
 ## Current Scope
 
-- Browser-based operator dashboard with equipment status, process values, alarm list, and trends.
+- Browser-based operator dashboard with KPI cards, equipment status table, process values, and active alarms.
 - Mock telemetry stream so the UI can be demonstrated without real PLC or SCADA infrastructure.
 - .NET Minimal API source for equipment, telemetry, alarms, and health endpoints.
 - Small domain tests for alarm classification and equipment summary logic.
@@ -22,7 +22,11 @@ The target role is TypeScript/.NET web application development for HMI/SCADA vis
 
 ## Run The Frontend Demo
 
-Open `src/hmi-web/index.html` in a browser.
+```bash
+npm run serve
+```
+
+Then open http://localhost:5173.
 
 The page uses a committed JavaScript build so it can run even on a machine without TypeScript tooling. The TypeScript source lives beside it in `src/hmi-web/src`.
 
