@@ -1,0 +1,23 @@
+# Build outputs
+bin/
+obj/
+dist/
+build/
+coverage/
+
+# Frontend dependencies
+node_modules/
+
+# IDE and OS files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
