@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Industrial HMI/SCADA Lite</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Line 4 / Packaging cell</p>
+          <h1>Operator overview</h1>
+        </div>
+        <div class="runtime">
+          <span class="runtime__dot" aria-hidden="true"></span>
+          <span id="runtimeStatus">Live simulation</span>
+        </div>
+      </header>
+
+      <section class="summary-grid" aria-label="Plant summary">
+        <article class="metric">
+          <span class="metric__label">Equipment online</span>
+          <strong id="onlineCount">0/0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric__label">Active alarms</span>
+          <strong id="alarmCount">0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric__label">Avg. utilization</span>
+          <strong id="utilizationAvg">0%</strong>
+        </article>
+        <article class="metric">
+          <span class="metric__label">Throughput</span>
+          <strong id="throughputTotal">0/h</strong>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <section class="process-panel" aria-labelledby="process-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Process view</p>
+              <h2 id="process-title">Packaging flow</h2>
+            </div>
+            <span id="lastUpdate" class="timestamp">Waiting for telemetry</span>
+          </div>
+          <img class="process-image" src="./assets/process-line.svg" alt="Simplified packaging line with tank, pump, press, and conveyor">
+          <div id="equipmentGrid" class="equipment-grid" aria-live="polite"></div>
+        </section>
+
+        <aside class="alarm-panel" aria-labelledby="alarms-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Alarm monitor</p>
+              <h2 id="alarms-title">Active alarms</h2>
+            </div>
+            <button id="ackAllButton" class="icon-button" type="button" title="Acknowledge all alarms" aria-label="Acknowledge all alarms">
+              OK
+            </button>
+          </div>
+          <div id="alarmList" class="alarm-list" aria-live="polite"></div>
+        </aside>
+      </section>
+
+      <section class="trend-panel" aria-labelledby="trend-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Telemetry trend</p>
+            <h2 id="trend-title">Temperature and vibration</h2>
+          </div>
+          <div class="legend" aria-label="Trend legend">
+            <span><i class="legend__temperature"></i>Temp C</span>
+            <span><i class="legend__vibration"></i>Vibration mm/s</span>
+          </div>
+        </div>
+        <canvas id="trendCanvas" width="1080" height="280" aria-label="Trend chart"></canvas>
+      </section>
+    </main>
+
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>

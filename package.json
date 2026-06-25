@@ -1,0 +1,10 @@
+{
+  "name": "industrial-hmi-scada-lite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portfolio prototype for a TypeScript/.NET industrial HMI/SCADA web application.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/domain.test.mjs"
+  }
+}

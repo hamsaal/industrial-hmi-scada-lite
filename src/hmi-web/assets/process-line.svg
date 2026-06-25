@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 260" role="img" aria-labelledby="title desc">
+  <title id="title">Simplified packaging process line</title>
+  <desc id="desc">A tank, pump, press, and conveyor connected by process pipes.</desc>
+  <defs>
+    <linearGradient id="steel" x1="0" x2="1">
+      <stop offset="0" stop-color="#dce4e8"/>
+      <stop offset="0.5" stop-color="#f8fbfc"/>
+      <stop offset="1" stop-color="#b9c7ce"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-20%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#1d2a31" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+  <rect width="980" height="260" rx="18" fill="#eef3f5"/>
+  <path d="M82 174H298M390 174h174M650 174h220" fill="none" stroke="#82949d" stroke-width="16" stroke-linecap="round"/>
+  <path d="M82 174H298M390 174h174M650 174h220" fill="none" stroke="#f7fafb" stroke-width="6" stroke-linecap="round"/>
+  <g filter="url(#shadow)">
+    <path d="M95 64h136l-16 126H111L95 64Z" fill="url(#steel)" stroke="#8fa0a8" stroke-width="4"/>
+    <ellipse cx="163" cy="64" rx="68" ry="18" fill="#f7fafb" stroke="#8fa0a8" stroke-width="4"/>
+    <path d="M126 91h74" stroke="#2266a8" stroke-width="8" stroke-linecap="round"/>
+    <path d="M124 117h78" stroke="#11855b" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#shadow)">
+    <circle cx="344" cy="174" r="52" fill="url(#steel)" stroke="#8fa0a8" stroke-width="4"/>
+    <circle cx="344" cy="174" r="25" fill="#ffffff" stroke="#2266a8" stroke-width="8"/>
+    <path d="M344 149v50M319 174h50" stroke="#2266a8" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="548" y="73" width="112" height="148" rx="14" fill="url(#steel)" stroke="#8fa0a8" stroke-width="4"/>
+    <rect x="570" y="99" width="68" height="30" rx="6" fill="#172126"/>
+    <path d="M572 169h64" stroke="#c24132" stroke-width="12" stroke-linecap="round"/>
+    <path d="M584 193h40" stroke="#11855b" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="748" y="139" width="150" height="72" rx="12" fill="#ffffff" stroke="#8fa0a8" stroke-width="4"/>
+    <path d="M768 159h110M768 184h110" stroke="#637178" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="779" cy="217" r="11" fill="#172126"/>
+    <circle cx="868" cy="217" r="11" fill="#172126"/>
+  </g>
+  <g fill="#172126" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">
+    <text x="119" y="226">Mix Tank</text>
+    <text x="311" y="246">Pump</text>
+    <text x="568" y="246">Press</text>
+    <text x="768" y="246">Conveyor</text>
+  </g>
+</svg>
