@@ -45,11 +45,3 @@ dotnet run --project src/ScadaDemo.Api
 ```
 
 This environment currently does not have `dotnet` installed, so the API is included as source and documented for local use.
-
-## Roadmap
-
-- Add Angular or a TypeScript build pipeline.
-- Add SignalR/WebSocket live updates.
-- Add alarm acknowledgement persistence.
-- Add integration tests for API routes.
-- Add GitHub Actions CI once the repository is pushed.
