@@ -2,7 +2,7 @@
 
 A small portfolio prototype for an industrial HMI/SCADA-style engineering web application.
 
-The goal is to demonstrate how a medior full stack developer could approach the domain: model equipment telemetry, expose backend monitoring endpoints, visualize plant status in a browser, surface alarms, and keep the code modular and testable.
+The goal is to demonstrate approach the domain: model equipment telemetry, expose backend monitoring endpoints, visualize plant status in a browser, surface alarms, and keep the code modular and testable.
 
 ## Current Scope
 
