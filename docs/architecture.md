@@ -17,11 +17,13 @@ This is not a real SCADA system and does not connect to PLCs. It is a web applic
 flowchart LR
   Simulator["Mock telemetry simulator"]
   Api[".NET Minimal API"]
+  ApiClient["Browser API client"]
   Browser["TypeScript HMI dashboard"]
   Operator["Operator or reviewer"]
 
   Simulator --> Api
-  Api --> Browser
+  Api --> ApiClient
+  ApiClient --> Browser
   Browser --> Operator
 ```
 
@@ -32,6 +34,7 @@ The API source is organized around plain models and focused endpoints:
 - `/api/equipment` returns configured equipment.
 - `/api/telemetry/latest` returns current readings.
 - `/api/alarms/active` returns active alarms.
+- `/api/dashboard/snapshot` returns summary, readings, and alarms from one coherent backend sample.
 - `/health` returns service health.
 
 ## Frontend Shape
@@ -39,7 +42,8 @@ The API source is organized around plain models and focused endpoints:
 The frontend keeps domain logic separate from rendering logic:
 
 - Domain functions classify readings and summarize plant state.
-- The mock telemetry module simulates changing process values.
+- The API client loads backend-owned dashboard snapshots.
+- The mock telemetry module simulates changing process values only when the API is unavailable.
 - The app module renders the dashboard and updates it on a timer.
 
-This separation makes the logic easy to test and gives a clear path to replacing mock data with API calls later.
+This separation keeps the browser focused on presentation while the backend becomes the contract owner for telemetry and alarms.
