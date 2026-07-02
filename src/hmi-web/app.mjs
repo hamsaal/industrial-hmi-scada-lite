@@ -1,4 +1,4 @@
-import { loadDashboardSnapshot } from "./apiClient.mjs";
+import { acknowledgeAlarms, loadDashboardSnapshot } from "./apiClient.mjs";
 import { buildAlarms, classifyReading, summarizePlant } from "./domain.mjs";
 import { nextTelemetryFrame } from "./mockTelemetry.mjs";
 
@@ -17,8 +17,29 @@ const dom = {
 const acknowledgedAlarmIds = new Set();
 let currentSnapshot = buildFallbackSnapshot();
 
-dom.ackAllButton.addEventListener("click", () => {
-  currentSnapshot.alarms.forEach((alarm) => acknowledgedAlarmIds.add(alarm.id));
+dom.ackAllButton.addEventListener("click", async () => {
+  const alarmIds = currentSnapshot.alarms
+    .filter((alarm) => alarm.status !== "acknowledged")
+    .map((alarm) => alarm.id);
+
+  if (alarmIds.length === 0) {
+    return;
+  }
+
+  if (currentSnapshot.source === "api") {
+    try {
+      await acknowledgeAlarms(alarmIds);
+      await updateSnapshot();
+      return;
+    } catch {
+      // If the acknowledgement endpoint drops out, preserve the operator's
+      // intent locally so the demo remains usable while connection state is
+      // visible as soon as the next snapshot fails.
+    }
+  }
+
+  alarmIds.forEach((alarmId) => acknowledgedAlarmIds.add(alarmId));
+  currentSnapshot = markLocalAcknowledgements(currentSnapshot);
   render(currentSnapshot);
 });
 
@@ -38,10 +59,9 @@ async function updateSnapshot() {
 
 function render(snapshot) {
   const { readings, summary, alarms, source } = snapshot;
-  const activeAlarms = alarms.filter((alarm) => !acknowledgedAlarmIds.has(alarm.id));
 
   dom.onlineCount.textContent = `${summary.online}/${summary.total}`;
-  dom.alarmCount.textContent = String(activeAlarms.length);
+  dom.alarmCount.textContent = String(alarms.length);
   dom.utilizationAvg.textContent = `${Math.round(summary.utilizationAvg)}%`;
   dom.throughputTotal.textContent = `${Math.round(summary.throughputTotal)}/h`;
   dom.lastUpdate.textContent = readings.length > 0
@@ -49,19 +69,17 @@ function render(snapshot) {
     : "No readings";
   dom.connectionState.textContent = source === "api" ? "API live" : "Simulator";
   dom.connectionState.classList.toggle("offline", source !== "api");
+  dom.ackAllButton.disabled = !alarms.some((alarm) => alarm.status !== "acknowledged");
 
   renderEquipmentRows(readings);
-  renderAlarms(activeAlarms);
+  renderAlarms(alarms);
 }
 
 function normalizeApiSnapshot(snapshot) {
   return {
     source: snapshot.source,
     readings: snapshot.readings,
-    alarms: snapshot.alarms.map((alarm) => ({
-      ...alarm,
-      severity: String(alarm.severity).toLowerCase()
-    })),
+    alarms: snapshot.alarms.map(normalizeAlarm),
     summary: {
       online: snapshot.summary.online,
       total: snapshot.summary.total,
@@ -74,6 +92,11 @@ function normalizeApiSnapshot(snapshot) {
 
 function buildFallbackSnapshot(error) {
   const readings = nextTelemetryFrame();
+  const alarms = buildAlarms(readings)
+    .map(normalizeAlarm)
+    .map((alarm) => acknowledgedAlarmIds.has(alarm.id)
+      ? { ...alarm, status: "acknowledged" }
+      : alarm);
 
   // The frontend simulator is intentionally a resilience/demo fallback. The
   // backend owns the production telemetry contract once the API is available.
@@ -82,7 +105,24 @@ function buildFallbackSnapshot(error) {
     error,
     readings,
     summary: summarizePlant(readings),
-    alarms: buildAlarms(readings)
+    alarms
+  };
+}
+
+function normalizeAlarm(alarm) {
+  return {
+    ...alarm,
+    severity: String(alarm.severity).toLowerCase(),
+    status: alarm.status ? String(alarm.status).toLowerCase() : "active"
+  };
+}
+
+function markLocalAcknowledgements(snapshot) {
+  return {
+    ...snapshot,
+    alarms: snapshot.alarms.map((alarm) => acknowledgedAlarmIds.has(alarm.id)
+      ? { ...alarm, status: "acknowledged" }
+      : alarm)
   };
 }
 
@@ -111,10 +151,10 @@ function renderAlarms(alarms) {
   }
 
   dom.alarmList.innerHTML = alarms.map((alarm) => `
-    <article class="alarm ${alarm.severity}">
+    <article class="alarm ${alarm.severity} ${alarm.status}">
       <strong>${alarm.title}</strong>
       <p>${alarm.description}</p>
-      <small>${alarm.equipmentTag} ${alarm.equipmentName} / ${alarm.severity.toUpperCase()}</small>
+      <small>${alarm.equipmentTag} ${alarm.equipmentName} / ${alarm.severity.toUpperCase()} / ${alarm.status.toUpperCase()}</small>
     </article>
   `).join("");
 }

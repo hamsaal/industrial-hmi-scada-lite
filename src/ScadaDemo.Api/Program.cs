@@ -14,6 +14,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 builder.Services.AddSingleton<TelemetrySimulator>();
+builder.Services.AddSingleton<AlarmLifecycleService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("LocalFrontend", policy =>
@@ -42,28 +43,61 @@ app.MapGet("/api/equipment", (TelemetrySimulator telemetry) =>
 app.MapGet("/api/telemetry/latest", (TelemetrySimulator telemetry) =>
     Results.Ok(telemetry.GetLatestReadings()));
 
-app.MapGet("/api/alarms/active", (TelemetrySimulator telemetry) =>
+app.MapGet("/api/alarms/active", (
+    TelemetrySimulator telemetry,
+    AlarmLifecycleService alarmLifecycle) =>
 {
     var readings = telemetry.GetLatestReadings();
-    return Results.Ok(AlarmEvaluator.BuildAlarms(readings));
+    var alarms = alarmLifecycle.ApplyLifecycle(
+        AlarmEvaluator.BuildAlarms(readings),
+        DateTimeOffset.UtcNow);
+
+    return Results.Ok(alarms);
 });
 
-app.MapGet("/api/dashboard/snapshot", (TelemetrySimulator telemetry) =>
+app.MapPost("/api/alarms/acknowledge", (
+    AcknowledgeAlarmsRequest request,
+    AlarmLifecycleService alarmLifecycle) =>
+{
+    var operatorName = string.IsNullOrWhiteSpace(request.OperatorName)
+        ? "operator"
+        : request.OperatorName.Trim();
+    var acknowledgedAt = DateTimeOffset.UtcNow;
+    var alarmIds = request.AlarmIds ?? [];
+    var count = alarmLifecycle.Acknowledge(
+        alarmIds,
+        operatorName,
+        acknowledgedAt);
+
+    return Results.Ok(new AcknowledgeAlarmsResponse(count, acknowledgedAt));
+});
+
+app.MapGet("/api/dashboard/snapshot", (
+    TelemetrySimulator telemetry,
+    AlarmLifecycleService alarmLifecycle) =>
 {
     var readings = telemetry.GetLatestReadings();
-    var alarms = AlarmEvaluator.BuildAlarms(readings);
+    var capturedAt = DateTimeOffset.UtcNow;
+    var alarms = alarmLifecycle.ApplyLifecycle(
+        AlarmEvaluator.BuildAlarms(readings),
+        capturedAt);
 
     return Results.Ok(new DashboardSnapshot(
         Summary: BuildSummary(readings, alarms),
         Readings: readings,
         Alarms: alarms,
-        CapturedAt: DateTimeOffset.UtcNow));
+        CapturedAt: capturedAt));
 });
 
-app.MapGet("/api/summary", (TelemetrySimulator telemetry) =>
+app.MapGet("/api/summary", (
+    TelemetrySimulator telemetry,
+    AlarmLifecycleService alarmLifecycle) =>
 {
     var readings = telemetry.GetLatestReadings();
-    var alarms = AlarmEvaluator.BuildAlarms(readings);
+    var alarms = alarmLifecycle.ApplyLifecycle(
+        AlarmEvaluator.BuildAlarms(readings),
+        DateTimeOffset.UtcNow);
+
     return Results.Ok(BuildSummary(readings, alarms));
 });
 

@@ -33,6 +33,11 @@ button {
   font-weight: 700;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .app {
   width: min(1180px, calc(100vw - 32px));
   margin: 0 auto;
@@ -199,6 +204,11 @@ tr:last-child td {
 
 .alarm.info {
   border-left-color: var(--info);
+}
+
+.alarm.acknowledged {
+  background: #f8fafb;
+  opacity: 0.78;
 }
 
 .alarm strong {
