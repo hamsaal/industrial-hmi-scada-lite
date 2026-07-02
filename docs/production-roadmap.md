@@ -25,6 +25,13 @@ Replace local-only alarm acknowledgement with backend-managed alarm state.
 Alarms should support raised, acknowledged, cleared, returned-to-normal, and
 shelved states.
 
+Current branch scope:
+
+- Add in-memory backend lifecycle state for active, acknowledged, and cleared
+  alarms.
+- Add an acknowledgement endpoint for operator actions.
+- Keep acknowledged alarms visible in the HMI list with their handled state.
+
 Production value:
 
 - Matches how operators actually work with alarm lists.

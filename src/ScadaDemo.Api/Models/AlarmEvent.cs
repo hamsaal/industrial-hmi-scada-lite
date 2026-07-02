@@ -8,11 +8,23 @@ public sealed record AlarmEvent(
     AlarmSeverity Severity,
     string Title,
     string Description,
-    DateTimeOffset RaisedAt);
+    DateTimeOffset RaisedAt,
+    AlarmStatus Status = AlarmStatus.Active,
+    DateTimeOffset? AcknowledgedAt = null,
+    string? AcknowledgedBy = null,
+    DateTimeOffset? ClearedAt = null);
 
 public enum AlarmSeverity
 {
     Info,
     Warning,
     Critical
+}
+
+public enum AlarmStatus
+{
+    Active,
+    Acknowledged,
+    Cleared,
+    Shelved
 }

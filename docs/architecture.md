@@ -34,6 +34,7 @@ The API source is organized around plain models and focused endpoints:
 - `/api/equipment` returns configured equipment.
 - `/api/telemetry/latest` returns current readings.
 - `/api/alarms/active` returns active alarms.
+- `/api/alarms/acknowledge` records operator acknowledgement for active alarms.
 - `/api/dashboard/snapshot` returns summary, readings, and alarms from one coherent backend sample.
 - `/health` returns service health.
 
@@ -47,3 +48,11 @@ The frontend keeps domain logic separate from rendering logic:
 - The app module renders the dashboard and updates it on a timer.
 
 This separation keeps the browser focused on presentation while the backend becomes the contract owner for telemetry and alarms.
+
+## Alarm Lifecycle
+
+Alarm rules still evaluate from the latest telemetry sample, but lifecycle state
+is backend-owned. The lifecycle service preserves the original raised time,
+records acknowledgement metadata, and marks alarms cleared when the triggering
+condition disappears. This is intentionally in-memory for now; the historian and
+audit branches should move this state into durable storage.
