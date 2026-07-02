@@ -43,5 +43,3 @@ Install the .NET SDK, then run:
 ```bash
 dotnet run --project src/ScadaDemo.Api
 ```
-
-This environment currently does not have `dotnet` installed, so the API is included as source and documented for local use.
