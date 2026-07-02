@@ -36,6 +36,7 @@ The API source is organized around plain models and focused endpoints:
 - `/api/alarms/active` returns active alarms.
 - `/api/alarms/acknowledge` records operator acknowledgement for active alarms.
 - `/api/dashboard/snapshot` returns summary, readings, and alarms from one coherent backend sample.
+- `/api/dashboard/stream` emits live dashboard snapshots as Server-Sent Events.
 - `/health` returns service health.
 
 ## Frontend Shape
@@ -43,11 +44,20 @@ The API source is organized around plain models and focused endpoints:
 The frontend keeps domain logic separate from rendering logic:
 
 - Domain functions classify readings and summarize plant state.
-- The API client loads backend-owned dashboard snapshots.
+- The API client subscribes to backend-owned dashboard snapshots and falls back to polling.
 - The mock telemetry module simulates changing process values only when the API is unavailable.
-- The app module renders the dashboard and updates it on a timer.
+- The app module renders the dashboard from stream, polling, or simulator snapshots.
 
 This separation keeps the browser focused on presentation while the backend becomes the contract owner for telemetry and alarms.
+
+## Live Updates
+
+The dashboard uses Server-Sent Events for live monitoring updates. SSE is a good
+fit at this stage because telemetry flows from backend to browser, works with
+native `EventSource`, and keeps the project dependency-light. If future operator
+control actions need bidirectional low-latency messaging, this stream boundary
+can evolve to SignalR or WebSockets without changing the dashboard snapshot
+contract.
 
 ## Alarm Lifecycle
 
