@@ -4,13 +4,25 @@ const requestTimeoutMs = 1200;
 export async function loadDashboardSnapshot(apiBaseUrl = defaultApiBaseUrl) {
   const snapshot = await readJson(`${apiBaseUrl}/api/dashboard/snapshot`);
 
-  return {
-    source: "api",
-    summary: snapshot.summary,
-    readings: snapshot.readings,
-    alarms: snapshot.alarms,
-    capturedAt: snapshot.capturedAt
-  };
+  return toDashboardSnapshot(snapshot, "api");
+}
+
+export function subscribeDashboardSnapshots({
+  onSnapshot,
+  onError,
+  apiBaseUrl = defaultApiBaseUrl
+}) {
+  const events = new EventSource(`${apiBaseUrl}/api/dashboard/stream`);
+
+  events.addEventListener("snapshot", (event) => {
+    onSnapshot(toDashboardSnapshot(JSON.parse(event.data), "stream"));
+  });
+
+  events.addEventListener("error", () => {
+    onError?.();
+  });
+
+  return () => events.close();
 }
 
 export async function acknowledgeAlarms(alarmIds, apiBaseUrl = defaultApiBaseUrl) {
@@ -56,4 +68,14 @@ async function sendJson(url, init) {
   } finally {
     window.clearTimeout(timeout);
   }
+}
+
+function toDashboardSnapshot(snapshot, source) {
+  return {
+    source,
+    summary: snapshot.summary,
+    readings: snapshot.readings,
+    alarms: snapshot.alarms,
+    capturedAt: snapshot.capturedAt
+  };
 }

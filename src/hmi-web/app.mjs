@@ -1,4 +1,4 @@
-import { acknowledgeAlarms, loadDashboardSnapshot } from "./apiClient.mjs";
+import { acknowledgeAlarms, loadDashboardSnapshot, subscribeDashboardSnapshots } from "./apiClient.mjs";
 import { buildAlarms, classifyReading, summarizePlant } from "./domain.mjs";
 import { nextTelemetryFrame } from "./mockTelemetry.mjs";
 
@@ -16,6 +16,8 @@ const dom = {
 
 const acknowledgedAlarmIds = new Set();
 let currentSnapshot = buildFallbackSnapshot();
+let stopStreaming = null;
+let fallbackTimer = null;
 
 dom.ackAllButton.addEventListener("click", async () => {
   const alarmIds = currentSnapshot.alarms
@@ -26,7 +28,7 @@ dom.ackAllButton.addEventListener("click", async () => {
     return;
   }
 
-  if (currentSnapshot.source === "api") {
+  if (currentSnapshot.source !== "simulator") {
     try {
       await acknowledgeAlarms(alarmIds);
       await updateSnapshot();
@@ -43,9 +45,12 @@ dom.ackAllButton.addEventListener("click", async () => {
   render(currentSnapshot);
 });
 
+window.addEventListener("beforeunload", () => {
+  stopStreaming?.();
+});
+
 render(currentSnapshot);
-updateSnapshot();
-window.setInterval(updateSnapshot, 2000);
+startStreaming();
 
 async function updateSnapshot() {
   try {
@@ -55,6 +60,43 @@ async function updateSnapshot() {
   }
 
   render(currentSnapshot);
+}
+
+function startStreaming() {
+  try {
+    stopStreaming = subscribeDashboardSnapshots({
+      onSnapshot: (snapshot) => {
+        stopFallbackPolling();
+        currentSnapshot = normalizeApiSnapshot(snapshot);
+        render(currentSnapshot);
+      },
+      onError: () => {
+        startFallbackPolling();
+      }
+    });
+  } catch {
+    startFallbackPolling();
+  }
+
+  updateSnapshot();
+}
+
+function startFallbackPolling() {
+  if (fallbackTimer) {
+    return;
+  }
+
+  updateSnapshot();
+  fallbackTimer = window.setInterval(updateSnapshot, 2000);
+}
+
+function stopFallbackPolling() {
+  if (!fallbackTimer) {
+    return;
+  }
+
+  window.clearInterval(fallbackTimer);
+  fallbackTimer = null;
 }
 
 function render(snapshot) {
@@ -67,8 +109,12 @@ function render(snapshot) {
   dom.lastUpdate.textContent = readings.length > 0
     ? new Date(readings[0].updatedAt).toLocaleTimeString()
     : "No readings";
-  dom.connectionState.textContent = source === "api" ? "API live" : "Simulator";
-  dom.connectionState.classList.toggle("offline", source !== "api");
+  dom.connectionState.textContent = source === "stream"
+    ? "Stream live"
+    : source === "api"
+      ? "API polling"
+      : "Simulator";
+  dom.connectionState.classList.toggle("offline", source === "simulator");
   dom.ackAllButton.disabled = !alarms.some((alarm) => alarm.status !== "acknowledged");
 
   renderEquipmentRows(readings);

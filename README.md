@@ -29,8 +29,9 @@ npm run serve
 Then open http://localhost:5173.
 
 For the most production-like path, run the .NET API first. The dashboard reads
-from `http://localhost:5078` and falls back to the committed browser simulator
-when the API is not available.
+from `http://localhost:5078`, subscribes to live dashboard updates, and falls
+back to API polling or the committed browser simulator when the stream/API is
+not available.
 
 ## Run Tests
 

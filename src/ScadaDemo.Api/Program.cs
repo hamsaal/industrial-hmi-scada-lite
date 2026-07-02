@@ -75,18 +75,32 @@ app.MapPost("/api/alarms/acknowledge", (
 app.MapGet("/api/dashboard/snapshot", (
     TelemetrySimulator telemetry,
     AlarmLifecycleService alarmLifecycle) =>
-{
-    var readings = telemetry.GetLatestReadings();
-    var capturedAt = DateTimeOffset.UtcNow;
-    var alarms = alarmLifecycle.ApplyLifecycle(
-        AlarmEvaluator.BuildAlarms(readings),
-        capturedAt);
+    Results.Ok(BuildDashboardSnapshot(telemetry, alarmLifecycle)));
 
-    return Results.Ok(new DashboardSnapshot(
-        Summary: BuildSummary(readings, alarms),
-        Readings: readings,
-        Alarms: alarms,
-        CapturedAt: capturedAt));
+app.MapGet("/api/dashboard/stream", async (
+    HttpContext context,
+    TelemetrySimulator telemetry,
+    AlarmLifecycleService alarmLifecycle,
+    CancellationToken cancellationToken) =>
+{
+    context.Response.Headers.CacheControl = "no-cache";
+    context.Response.Headers.Connection = "keep-alive";
+    context.Response.ContentType = "text/event-stream";
+
+    while (!cancellationToken.IsCancellationRequested)
+    {
+        var snapshot = BuildDashboardSnapshot(telemetry, alarmLifecycle);
+        var json = JsonSerializer.Serialize(snapshot, context.RequestServices
+            .GetRequiredService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions>>()
+            .Value
+            .SerializerOptions);
+
+        await context.Response.WriteAsync("event: snapshot\n", cancellationToken);
+        await context.Response.WriteAsync($"id: {snapshot.CapturedAt.ToUnixTimeMilliseconds()}\n", cancellationToken);
+        await context.Response.WriteAsync($"data: {json}\n\n", cancellationToken);
+        await context.Response.Body.FlushAsync(cancellationToken);
+        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+    }
 });
 
 app.MapGet("/api/summary", (
@@ -115,6 +129,23 @@ static PlantSummary BuildSummary(
             ? readings.Average(reading => reading.UtilizationPct)
             : 0,
         ThroughputTotal: readings.Sum(reading => reading.ThroughputPerHour));
+}
+
+static DashboardSnapshot BuildDashboardSnapshot(
+    TelemetrySimulator telemetry,
+    AlarmLifecycleService alarmLifecycle)
+{
+    var readings = telemetry.GetLatestReadings();
+    var capturedAt = DateTimeOffset.UtcNow;
+    var alarms = alarmLifecycle.ApplyLifecycle(
+        AlarmEvaluator.BuildAlarms(readings),
+        capturedAt);
+
+    return new DashboardSnapshot(
+        Summary: BuildSummary(readings, alarms),
+        Readings: readings,
+        Alarms: alarms,
+        CapturedAt: capturedAt);
 }
 
 app.Run();

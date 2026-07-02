@@ -42,6 +42,12 @@ Production value:
 
 Add SignalR or Server-Sent Events for telemetry and alarm updates.
 
+Current branch scope:
+
+- Add `/api/dashboard/stream` for Server-Sent Event dashboard snapshots.
+- Make the HMI consume stream updates first.
+- Keep API polling and simulator fallback for degraded local/demo operation.
+
 Production value:
 
 - Removes UI polling as the main update mechanism.
