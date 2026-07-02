@@ -4,8 +4,18 @@
   "private": true,
   "description": "Portfolio prototype for a TypeScript/.NET industrial HMI/SCADA web application.",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "restore": "dotnet restore IndustrialHmiScadaLite.sln",
+    "build": "npm run build:api && npm run check:frontend",
+    "build:api": "dotnet build IndustrialHmiScadaLite.sln --configuration Release --no-restore --nologo",
+    "check:frontend": "node --check src/hmi-web/apiClient.mjs && node --check src/hmi-web/app.mjs && node --check src/hmi-web/domain.mjs && node --check src/hmi-web/mockTelemetry.mjs && node --check tools/serve.mjs",
+    "ci": "npm run restore && npm run build && npm test",
     "serve": "node tools/serve.mjs",
-    "test": "node --test tests/domain.test.mjs"
+    "test": "npm run test:api && npm run test:frontend",
+    "test:api": "dotnet test IndustrialHmiScadaLite.sln --configuration Release --no-build --nologo",
+    "test:frontend": "node --test tests/domain.test.mjs"
   }
 }
