@@ -90,6 +90,11 @@ h2 {
   text-transform: uppercase;
 }
 
+.status-badge.offline {
+  background: rgba(183, 121, 31, 0.14);
+  color: var(--warn);
+}
+
 .kpis {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 16px;

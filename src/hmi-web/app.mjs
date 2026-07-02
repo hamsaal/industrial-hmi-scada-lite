@@ -1,3 +1,4 @@
+import { loadDashboardSnapshot } from "./apiClient.mjs";
 import { buildAlarms, classifyReading, summarizePlant } from "./domain.mjs";
 import { nextTelemetryFrame } from "./mockTelemetry.mjs";
 
@@ -9,37 +10,80 @@ const dom = {
   lastUpdate: document.querySelector("#lastUpdate"),
   equipmentRows: document.querySelector("#equipmentRows"),
   alarmList: document.querySelector("#alarmList"),
-  ackAllButton: document.querySelector("#ackAllButton")
+  ackAllButton: document.querySelector("#ackAllButton"),
+  connectionState: document.querySelector("#connectionState")
 };
 
 const acknowledgedAlarmIds = new Set();
-let currentFrame = nextTelemetryFrame();
+let currentSnapshot = buildFallbackSnapshot();
 
 dom.ackAllButton.addEventListener("click", () => {
-  buildAlarms(currentFrame).forEach((alarm) => acknowledgedAlarmIds.add(alarm.id));
-  render(currentFrame);
+  currentSnapshot.alarms.forEach((alarm) => acknowledgedAlarmIds.add(alarm.id));
+  render(currentSnapshot);
 });
 
-render(currentFrame);
-window.setInterval(updateFrame, 2000);
+render(currentSnapshot);
+updateSnapshot();
+window.setInterval(updateSnapshot, 2000);
 
-function updateFrame() {
-  currentFrame = nextTelemetryFrame();
-  render(currentFrame);
+async function updateSnapshot() {
+  try {
+    currentSnapshot = normalizeApiSnapshot(await loadDashboardSnapshot());
+  } catch (error) {
+    currentSnapshot = buildFallbackSnapshot(error);
+  }
+
+  render(currentSnapshot);
 }
 
-function render(readings) {
-  const summary = summarizePlant(readings);
-  const activeAlarms = buildAlarms(readings).filter((alarm) => !acknowledgedAlarmIds.has(alarm.id));
+function render(snapshot) {
+  const { readings, summary, alarms, source } = snapshot;
+  const activeAlarms = alarms.filter((alarm) => !acknowledgedAlarmIds.has(alarm.id));
 
   dom.onlineCount.textContent = `${summary.online}/${summary.total}`;
   dom.alarmCount.textContent = String(activeAlarms.length);
   dom.utilizationAvg.textContent = `${Math.round(summary.utilizationAvg)}%`;
   dom.throughputTotal.textContent = `${Math.round(summary.throughputTotal)}/h`;
-  dom.lastUpdate.textContent = new Date(readings[0].updatedAt).toLocaleTimeString();
+  dom.lastUpdate.textContent = readings.length > 0
+    ? new Date(readings[0].updatedAt).toLocaleTimeString()
+    : "No readings";
+  dom.connectionState.textContent = source === "api" ? "API live" : "Simulator";
+  dom.connectionState.classList.toggle("offline", source !== "api");
 
   renderEquipmentRows(readings);
   renderAlarms(activeAlarms);
+}
+
+function normalizeApiSnapshot(snapshot) {
+  return {
+    source: snapshot.source,
+    readings: snapshot.readings,
+    alarms: snapshot.alarms.map((alarm) => ({
+      ...alarm,
+      severity: String(alarm.severity).toLowerCase()
+    })),
+    summary: {
+      online: snapshot.summary.online,
+      total: snapshot.summary.total,
+      activeAlarms: snapshot.summary.activeAlarms,
+      utilizationAvg: snapshot.summary.utilizationAverage,
+      throughputTotal: snapshot.summary.throughputTotal
+    }
+  };
+}
+
+function buildFallbackSnapshot(error) {
+  const readings = nextTelemetryFrame();
+
+  // The frontend simulator is intentionally a resilience/demo fallback. The
+  // backend owns the production telemetry contract once the API is available.
+  return {
+    source: "simulator",
+    error,
+    readings,
+    summary: summarizePlant(readings),
+    alarms: buildAlarms(readings)
+  };
 }
 
 function renderEquipmentRows(readings) {
