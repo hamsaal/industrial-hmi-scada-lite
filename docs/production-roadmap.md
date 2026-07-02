@@ -73,6 +73,12 @@ Production value:
 
 Add Docker Compose, health checks, structured logging, and CI checks.
 
+Build-system foundation:
+
+- Add a .NET solution and backend test project.
+- Add one local/CI command contract through `npm run ci`.
+- Add GitHub Actions checks for pull requests and `main`.
+
 Production value:
 
 - Makes the application reproducible outside one developer machine.

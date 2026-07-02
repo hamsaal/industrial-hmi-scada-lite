@@ -35,8 +35,18 @@ when the API is not available.
 ## Run Tests
 
 ```bash
-node --test tests/domain.test.mjs
+npm test
 ```
+
+## Build And CI Checks
+
+```bash
+npm run ci
+```
+
+This restores .NET packages, builds the solution in Release mode, validates the
+browser modules, and runs backend/frontend tests. See `docs/build-system.md` for
+the full command map.
 
 ## Run The .NET API
 
